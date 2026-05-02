@@ -1,0 +1,14 @@
+# OS
+.DS_Store
+
+# Sanity Studio
+sanity-studio/node_modules/
+sanity-studio/dist/
+sanity-studio/.sanity/
+sanity-studio/*.log
+sanity-studio/*.tsbuildinfo
+
+# Env
+*.local
+.env
+.env.*

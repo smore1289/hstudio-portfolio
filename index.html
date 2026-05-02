@@ -973,5 +973,443 @@
   </div>
 </footer>
 
+<script>
+/* ============================================================
+   Sanity content hydration
+   Pulls the homePage + siteSettings singletons (with all
+   referenced services, projects, testimonials, news) and swaps
+   matching DOM nodes. Static markup remains as the fallback
+   when Sanity is empty / offline / blocked.
+   ============================================================ */
+(function () {
+  const PROJECT_ID = 'r5tpzjtn';
+  const DATASET = 'production';
+  const API_VERSION = 'v2024-01-01';
+  const API_URL = `https://${PROJECT_ID}.apicdn.sanity.io/${API_VERSION}/data/query/${DATASET}`;
+  const ASSET_BASE = `https://cdn.sanity.io/images/${PROJECT_ID}/${DATASET}/`;
+
+  const QUERY = `{
+    "settings": *[_type == "siteSettings"][0]{
+      siteTitle,
+      tagline,
+      navLinks,
+      primaryCta,
+      footerHeadline,
+      footerColumns[]{ links },
+      legalLinks,
+      codedByLabel
+    },
+    "home": *[_type == "homePage"][0]{
+      heroEyebrow,
+      heroTitle,
+      heroIntro,
+      "heroImageRef": heroImage.asset._ref,
+      statementEyebrow,
+      statementLines,
+      statementEndTag,
+      aboutEyebrow,
+      aboutCtaText,
+      aboutBody,
+      "aboutImageRef": aboutImage.asset._ref,
+      "bannerImageRef": bannerImage.asset._ref,
+      servicesEyebrow,
+      servicesHeading,
+      services[]->{
+        _id, name, description, order,
+        "imageRef": image.asset._ref
+      },
+      workHeading,
+      workEyebrow,
+      workCtaText,
+      projects[]->{
+        _id, name, "slug": slug.current, tags, externalUrl, summary,
+        "coverRef": cover.asset._ref
+      },
+      testimonialsHeading,
+      testimonials[]->{
+        _id, quote, authorName, authorRole, rating
+      },
+      newsHeading,
+      newsItems[]->{
+        _id, title, "slug": slug.current, excerpt, externalUrl, publishedAt,
+        "coverRef": cover.asset._ref
+      }
+    }
+  }`;
+
+  function urlFromRef(ref) {
+    if (!ref || typeof ref !== 'string') return null;
+    const m = ref.match(/^image-([a-f0-9]+)-(\d+x\d+)-(\w+)$/);
+    if (!m) return null;
+    return `${ASSET_BASE}${m[1]}-${m[2]}.${m[3]}`;
+  }
+
+  function setText(selector, value) {
+    if (value == null || value === '') return;
+    const el = document.querySelector(selector);
+    if (el) el.textContent = value;
+  }
+
+  function setHref(selector, value) {
+    if (!value) return;
+    document.querySelectorAll(selector).forEach((el) => (el.href = value));
+  }
+
+  function setBgImage(selector, ref) {
+    const url = urlFromRef(ref);
+    if (!url) return;
+    const el = document.querySelector(selector);
+    if (el) el.style.backgroundImage = `url('${url}')`;
+  }
+
+  function setImg(selector, ref, alt) {
+    const url = urlFromRef(ref);
+    if (!url) return;
+    const el = document.querySelector(selector);
+    if (!el) return;
+    el.src = url;
+    if (alt) el.alt = alt;
+  }
+
+  // Naive Portable Text renderer — handles standard blocks with marks.
+  function portableTextToHtml(blocks) {
+    if (!Array.isArray(blocks)) return '';
+    return blocks
+      .filter((b) => b && b._type === 'block')
+      .map((b) => {
+        const tag = b.style && b.style !== 'normal' ? b.style : 'p';
+        const inner = (b.children || [])
+          .map((span) => {
+            const text = (span.text || '').replace(/[&<>]/g, (c) =>
+              ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]),
+            );
+            const marks = span.marks || [];
+            let out = text;
+            if (marks.includes('strong')) out = `<strong>${out}</strong>`;
+            if (marks.includes('em')) out = `<em>${out}</em>`;
+            return out;
+          })
+          .join('');
+        return `<${tag}>${inner}</${tag}>`;
+      })
+      .join('\n');
+  }
+
+  function hydrateSettings(s) {
+    if (!s) return;
+    if (s.siteTitle) {
+      document.title = `${s.siteTitle} — Portfolio`;
+      setText('.logo', s.siteTitle);
+      setText('.h-studio-big', s.siteTitle);
+    }
+    if (s.tagline) setText('.hero-foot-inner p', s.tagline);
+
+    if (Array.isArray(s.navLinks) && s.navLinks.length) {
+      const nav = document.querySelector('.nav-links');
+      if (nav) {
+        nav.innerHTML = s.navLinks
+          .map((l) => `<a href="${l.href || '#'}">${l.label || ''}</a>`)
+          .join('');
+      }
+    }
+
+    if (s.primaryCta) {
+      document.querySelectorAll('.btn').forEach((btn) => {
+        if (s.primaryCta.label) btn.textContent = s.primaryCta.label;
+        if (s.primaryCta.href) btn.setAttribute('href', s.primaryCta.href);
+      });
+    }
+
+    if (s.footerHeadline) setText('.footer .top-cta h3', s.footerHeadline);
+
+    if (Array.isArray(s.footerColumns) && s.footerColumns.length) {
+      const cols = document.querySelectorAll('.footer .col-links');
+      s.footerColumns.forEach((col, i) => {
+        const target = cols[i];
+        if (!target || !Array.isArray(col.links)) return;
+        target.innerHTML = col.links
+          .map((l) => `<a href="${l.href || '#'}">${l.label || ''}</a>`)
+          .join('');
+      });
+    }
+
+    if (Array.isArray(s.legalLinks) && s.legalLinks.length) {
+      const legal = document.querySelector('.footer .legal');
+      if (legal) {
+        legal.innerHTML = s.legalLinks
+          .map((l) => `<a href="${l.href || '#'}">${l.label || ''}</a>`)
+          .join('');
+      }
+    }
+
+    if (s.codedByLabel) setText('.footer .vertical', s.codedByLabel);
+  }
+
+  function hydrateHero(h) {
+    if (!h) return;
+    setText('.hero-tag', h.heroEyebrow);
+    if (h.heroTitle) {
+      const t = document.querySelector('.hero-title');
+      if (t) t.textContent = h.heroTitle;
+    }
+    if (h.heroIntro) setText('.hero-foot-inner p', h.heroIntro);
+    setBgImage('.hero-bg', h.heroImageRef);
+  }
+
+  function hydrateStatement(h) {
+    setText('.statement-top .mono', h.statementEyebrow);
+    if (Array.isArray(h.statementLines) && h.statementLines.length) {
+      const wrap = document.querySelector('.statement-text');
+      if (wrap) {
+        const lines = h.statementLines;
+        const endTag = h.statementEndTag || '';
+        wrap.innerHTML = lines
+          .map((line, i) => {
+            const isFirst = i === 0;
+            const isLast = i === lines.length - 1;
+            const escaped = line.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+            const trailing = isFirst
+              ? `<span class="num">001</span>`
+              : isLast && endTag
+              ? `<span class="tag-end">${endTag.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</span>`
+              : '';
+            return `<div class="row"><h2>${escaped}</h2>${trailing}</div>`;
+          })
+          .join('');
+      }
+    } else if (h.statementEndTag) {
+      setText('.statement-text .tag-end', h.statementEndTag);
+    }
+  }
+
+  function hydrateAbout(h) {
+    setText('.about-tag', h.aboutEyebrow);
+    if (h.aboutCtaText) {
+      const p = document.querySelector('.about-cta p');
+      if (p) p.textContent = h.aboutCtaText;
+    }
+    if (Array.isArray(h.aboutBody) && h.aboutBody.length) {
+      const wrap = document.querySelector('.about-text');
+      if (wrap) wrap.innerHTML = portableTextToHtml(h.aboutBody);
+    }
+    setImg('.about-img img', h.aboutImageRef, 'About portrait');
+  }
+
+  function hydrateBanner(h) {
+    setBgImage('.banner', h.bannerImageRef);
+  }
+
+  function hydrateServices(h) {
+    setText('.services-tag', h.servicesEyebrow);
+    setText('.services-title h2', h.servicesHeading);
+
+    const services = Array.isArray(h.services) ? h.services.slice() : [];
+    if (!services.length) return;
+    services.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+    const numEl = document.querySelector('.services-title .num');
+    if (numEl) numEl.textContent = `[${services.length}]`;
+
+    const container = document.querySelector('.services .inner');
+    if (!container) return;
+    // Remove existing .service nodes
+    container.querySelectorAll('.service').forEach((n) => n.remove());
+
+    services.forEach((s, i) => {
+      const article = document.createElement('div');
+      article.className = 'service';
+      const num = i + 1;
+      const imgUrl = urlFromRef(s.imageRef);
+      article.innerHTML = `
+        <div class="mono service-num">[ ${num} ]</div>
+        <div class="service-row">
+          <div class="service-name">${escapeHtml(s.name || '')}</div>
+          <p class="service-desc">${escapeHtml(s.description || '')}</p>
+          ${imgUrl ? `<img class="service-img" src="${imgUrl}" alt="${escapeHtml(s.name || '')}" />` : ''}
+        </div>
+      `;
+      container.appendChild(article);
+    });
+  }
+
+  function hydrateWork(h) {
+    if (h.workHeading) {
+      const wh = document.querySelector('.work-head h2');
+      if (wh) {
+        const num = wh.querySelector('.num');
+        const numText = num ? num.outerHTML : '';
+        wh.innerHTML = escapeHtml(h.workHeading).replace(/\s+/g, '<br />') + numText;
+      }
+    }
+    setText('.work-head .vertical-tag', h.workEyebrow);
+    if (h.workCtaText) {
+      const p = document.querySelector('.work-cta p');
+      if (p) p.textContent = h.workCtaText;
+    }
+
+    const projects = Array.isArray(h.projects) ? h.projects : [];
+    if (!projects.length) return;
+
+    const grid = document.querySelector('.work-grid');
+    if (!grid) return;
+
+    const arrowSvg = `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const ctaArrowSvg = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 17 17 7M9 7h8v8" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    function projectCard(p, sizeClass) {
+      const cover = urlFromRef(p.coverRef);
+      const tagsHtml = (p.tags || [])
+        .map((t) => `<span class="project-tag">${escapeHtml(t)}</span>`)
+        .join('');
+      const linkOpen = p.externalUrl ? `<a href="${p.externalUrl}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:contents;">` : '';
+      const linkClose = p.externalUrl ? `</a>` : '';
+      return `
+        <article class="project">
+          ${linkOpen}
+          <div class="project-img-wrap ${sizeClass}">
+            ${cover ? `<img src="${cover}" alt="${escapeHtml(p.name || '')}" />` : ''}
+            ${tagsHtml ? `<div class="project-tags">${tagsHtml}</div>` : ''}
+          </div>
+          <div class="project-foot">
+            <h3 class="project-name">${escapeHtml(p.name || '')}</h3>
+            <span class="project-arrow">${arrowSvg}</span>
+          </div>
+          ${linkClose}
+        </article>
+      `;
+    }
+
+    // Distribute projects across two columns, alternating tall/short pattern
+    const sizes = ['tall', 'short', 'short', 'tall'];
+    const left = [];
+    const right = [];
+    projects.forEach((p, i) => {
+      const card = projectCard(p, sizes[i % sizes.length]);
+      if (i % 2 === 0) left.push(card);
+      else right.push(card);
+    });
+
+    const settings = window.__SANITY_DATA__?.settings || {};
+    const ctaLabel = settings.primaryCta?.label || 'Let’s talk';
+    const ctaHref = settings.primaryCta?.href || '#contact';
+    const workCtaHtml = `
+      <div class="work-cta">
+        <div class="about-cta-arrow">${ctaArrowSvg}</div>
+        <div>
+          <p>${escapeHtml(h.workCtaText || '')}</p>
+          <a href="${ctaHref}" class="btn">${escapeHtml(ctaLabel)}</a>
+        </div>
+      </div>
+    `;
+
+    grid.innerHTML = `
+      <div class="work-col">
+        ${left.join('')}
+        ${h.workCtaText ? workCtaHtml : ''}
+      </div>
+      <div class="work-col right">
+        ${right.join('')}
+      </div>
+    `;
+  }
+
+  function hydrateTestimonials(h) {
+    setText('.testimonials .big', h.testimonialsHeading);
+
+    const items = Array.isArray(h.testimonials) ? h.testimonials : [];
+    if (!items.length) return;
+
+    // Reuse the 4 absolutely-positioned slots; if more items, append at end
+    const slots = document.querySelectorAll('.testimonial');
+    const star = `<svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>`;
+    items.forEach((t, i) => {
+      const slot = slots[i];
+      if (!slot) return;
+      const rating = Number.isFinite(t.rating) ? Math.max(0, Math.min(5, t.rating)) : 5;
+      slot.innerHTML = `
+        <div class="stars stars-row">${star.repeat(rating)}</div>
+        <p>${escapeHtml(t.quote || '')}</p>
+        <span class="name">${escapeHtml(t.authorName || '')}</span>
+      `;
+    });
+    // Hide unused slots
+    for (let i = items.length; i < slots.length; i++) {
+      slots[i].style.display = 'none';
+    }
+  }
+
+  function hydrateNews(h) {
+    if (h.newsHeading) {
+      const t = document.querySelector('.news-title');
+      if (t) t.innerHTML = escapeHtml(h.newsHeading).replace(/\n/g, '<br />');
+    }
+    const items = Array.isArray(h.newsItems) ? h.newsItems : [];
+    if (!items.length) return;
+
+    const list = document.querySelector('.news-list');
+    if (!list) return;
+
+    const arrowSvg = `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    list.innerHTML = items
+      .slice(0, 3)
+      .map((n, i) => {
+        const cover = urlFromRef(n.coverRef);
+        const href = n.externalUrl || (n.slug ? `#news/${n.slug}` : '#');
+        return `
+          <article class="news-item ${i === 1 ? 'middle' : ''}">
+            ${cover ? `<img src="${cover}" alt="${escapeHtml(n.title || '')}" />` : ''}
+            <p>${escapeHtml(n.excerpt || '')}</p>
+            <a href="${href}" class="news-more" ${n.externalUrl ? 'target="_blank" rel="noopener"' : ''}>
+              Read more
+              ${arrowSvg}
+            </a>
+          </article>
+        `;
+      })
+      .join('');
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+  }
+
+  async function load() {
+    try {
+      const url = `${API_URL}?query=${encodeURIComponent(QUERY)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        console.warn('[sanity] fetch failed', res.status, await res.text());
+        return;
+      }
+      const json = await res.json();
+      const data = json.result || {};
+      window.__SANITY_DATA__ = data;
+
+      hydrateSettings(data.settings);
+      if (data.home) {
+        hydrateHero(data.home);
+        hydrateStatement(data.home);
+        hydrateAbout(data.home);
+        hydrateBanner(data.home);
+        hydrateServices(data.home);
+        hydrateWork(data.home);
+        hydrateTestimonials(data.home);
+        hydrateNews(data.home);
+      }
+    } catch (err) {
+      console.warn('[sanity] hydration error, using static content', err);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', load);
+  } else {
+    load();
+  }
+})();
+</script>
+
 </body>
 </html>
