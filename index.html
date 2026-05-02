@@ -1,20 +1,977 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HStudio Portfolio</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-            color: #333;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>H.Studio — Harvey Specter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Geist+Mono:wght@400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #fafafa;
+    --bg-dark: #000000;
+    --bg-news: #f2f2f2;
+    --text: #000000;
+    --text-soft: #1f1f1f;
+    --text-mute: #a6a6a6;
+    --white: #ffffff;
+    --border: rgba(255, 255, 255, 0.3);
+    --maxw: 1440px;
+    --inner: 1376px;
+    --pad: 32px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.4;
+  }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+
+  .mono { font-family: "Geist Mono", ui-monospace, monospace; font-weight: 400; font-size: 14px; color: var(--text-soft); letter-spacing: 0.02em; }
+
+  .section { width: 100%; max-width: var(--maxw); margin: 0 auto; }
+  .inner { width: 100%; max-width: var(--inner); margin: 0 auto; padding: 0 var(--pad); }
+
+  /* Pill button */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 41px;
+    padding: 0 22px;
+    border-radius: 24px;
+    background: #000;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+    transition: opacity .2s ease;
+  }
+  .btn:hover { opacity: 0.85; }
+
+  /* ============ HERO / NAV ============ */
+  .hero {
+    position: relative;
+    height: 847px;
+    overflow: hidden;
+    background: #ddd;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('images/hero.jpg') center/cover no-repeat;
+  }
+  .hero-fade {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 349px;
+    background: linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,1) 100%);
+  }
+
+  .nav {
+    position: relative;
+    z-index: 5;
+    padding-top: 35px;
+  }
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 41px;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .nav-links {
+    display: flex;
+    gap: 56px;
+  }
+  .nav-links a {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 4;
+    margin-top: 90px;
+  }
+  .hero-tag {
+    color: var(--white);
+    margin: 0 0 12px;
+  }
+  .hero-title {
+    margin: 0;
+    font-size: 198px;
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--white);
+    letter-spacing: -0.04em;
+    word-spacing: 0.6em;
+  }
+  .hero-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+  }
+  .hero-foot-inner {
+    width: 294px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .hero-foot-inner p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+  .hero-foot-inner .btn { align-self: flex-start; }
+
+  /* ============ STATEMENT (1:33) ============ */
+  .statement {
+    padding: 75px 0 80px;
+  }
+  .statement-top {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1f1f1f;
+    margin-bottom: 60px;
+  }
+  .statement-text h2 {
+    margin: 0;
+    font-size: 96px;
+    font-weight: 300;
+    line-height: 1;
+    color: #000;
+    letter-spacing: -0.03em;
+  }
+  .statement-text .row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .statement-text .row:last-child { margin-bottom: 0; }
+  .statement-text .num {
+    font-family: "Geist Mono", monospace;
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+  .statement-text .tag-end {
+    font-family: "Geist Mono", monospace;
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+
+  /* ============ ABOUT (1:51) ============ */
+  .about {
+    padding: 80px 0;
+  }
+  .about-tag { margin-bottom: 60px; }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 465px 1fr 486px;
+    gap: 32px;
+    align-items: start;
+  }
+  .about-cta {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .about-cta-arrow {
+    width: 24px;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+  .about-cta-arrow svg { display: block; width: 24px; height: 24px; }
+  .about-cta p {
+    margin: 0 0 24px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: #000;
+  }
+  .about-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-soft);
+  }
+  .about-text p {
+    margin: 0 0 16px;
+  }
+  .about-img {
+    position: relative;
+    width: 486px;
+    height: 614px;
+  }
+  .about-img .num {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .about-img img {
+    width: 436px;
+    height: 614px;
+    object-fit: cover;
+    margin-left: 50px;
+  }
+
+  /* ============ BANNER ============ */
+  .banner {
+    width: 100%;
+    height: 900px;
+    background: url('images/banner.jpg') center/cover no-repeat;
+  }
+
+  /* ============ SERVICES (dark) ============ */
+  .services {
+    background: var(--bg-dark);
+    color: var(--white);
+    padding: 80px 0 120px;
+  }
+  .services .mono { color: var(--white); }
+  .services-tag { margin-bottom: 32px; }
+  .services-title {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 80px;
+  }
+  .services-title .num {
+    font-size: 96px;
+    font-weight: 300;
+    color: var(--white);
+    letter-spacing: -0.03em;
+  }
+  .services-title h2 {
+    margin: 0;
+    font-size: 96px;
+    font-weight: 300;
+    color: var(--white);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .service {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+  }
+  .service:last-child { border-bottom: 1px solid var(--border); }
+  .service-num {
+    margin-bottom: 12px;
+  }
+  .service-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 151px;
+    gap: 32px;
+    align-items: center;
+  }
+  .service-name {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.02em;
+  }
+  .service-desc {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--white);
+    max-width: 393px;
+  }
+  .service-img {
+    width: 151px;
+    height: 151px;
+    object-fit: cover;
+  }
+
+  /* ============ SELECTED WORK (1:110) ============ */
+  .work {
+    padding: 80px 0 120px;
+  }
+  .work-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 60px;
+  }
+  .work-head h2 {
+    margin: 0;
+    font-size: 198px;
+    font-weight: 500;
+    color: #000;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+  }
+  .work-head h2 .num {
+    font-family: "Geist Mono", monospace;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-soft);
+    vertical-align: top;
+    margin-left: 12px;
+  }
+  .work-head .vertical-tag {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: "Geist Mono", monospace;
+    font-size: 14px;
+    color: var(--text-soft);
+  }
+  .work-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .work-col {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+  .work-col.right { padding-top: 240px; }
+  .project {
+    display: flex;
+    flex-direction: column;
+  }
+  .project-img-wrap {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+  .project-img-wrap.tall { height: 744px; }
+  .project-img-wrap.short { height: 699px; }
+  .project-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .project-tags {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    gap: 12px;
+  }
+  .project-tag {
+    background: var(--white);
+    color: #111;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .project-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+  }
+  .project-name {
+    font-size: 36px;
+    font-weight: 900;
+    color: #000;
+    letter-spacing: -0.02em;
+  }
+  .project-arrow {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .work-cta {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    max-width: 465px;
+    margin-top: 56px;
+  }
+  .work-cta p {
+    margin: 0 0 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-soft);
+  }
+
+  /* ============ TESTIMONIALS ============ */
+  .testimonials {
+    position: relative;
+    padding: 80px 0;
+    height: 987px;
+    overflow: hidden;
+  }
+  .testimonials .big {
+    margin: 0;
+    font-size: 198px;
+    font-weight: 500;
+    text-align: center;
+    color: #000;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin-top: 384px;
+  }
+  .testimonial {
+    position: absolute;
+    max-width: 380px;
+  }
+  .testimonial .stars {
+    margin-bottom: 16px;
+    display: flex;
+  }
+  .testimonial .stars svg { display: block; }
+  .testimonial p {
+    margin: 0 0 12px;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--text-soft);
+    font-weight: 400;
+  }
+  .testimonial .name {
+    font-size: 16px;
+    font-weight: 900;
+    color: #000;
+  }
+  .t-1 { left: calc((100% - 1376px) / 2 + 676px); top: 272px; width: 362px; }
+  .t-2 { left: calc((100% - 1376px) / 2 + 102px); top: 142px; width: 381px; }
+  .t-3 { left: calc((100% - 1376px) / 2 + 305px); top: 553px; width: 363px; }
+  .t-4 { left: calc((100% - 1376px) / 2 + 987px); top: 546px; width: 367px; }
+
+  .stars-row { display: flex; gap: 4px; }
+  .stars-row svg { width: 18px; height: 18px; }
+
+  /* ============ NEWS ============ */
+  .news {
+    background: var(--bg-news);
+    padding: 80px 0;
+  }
+  .news-inner {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 130px;
+  }
+  .news-title {
+    transform: rotate(-90deg);
+    transform-origin: top left;
+    width: 706px;
+    margin-top: 706px;
+    font-size: 64px;
+    font-weight: 300;
+    line-height: 1.1;
+    color: #000;
+    letter-spacing: -0.03em;
+    margin-bottom: 0;
+  }
+  .news-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  .news-item {
+    display: flex;
+    flex-direction: column;
+  }
+  .news-item img {
+    width: 100%;
+    height: 469px;
+    object-fit: cover;
+    margin-bottom: 24px;
+  }
+  .news-item.middle img { height: 588px; }
+  .news-item p {
+    margin: 0 0 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-soft);
+  }
+  .news-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000;
+  }
+  .news-more svg { width: 16px; height: 16px; }
+  .news-divider {
+    border-left: 1px solid #c2ccd1;
+    height: 100%;
+  }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    background: var(--bg-dark);
+    color: var(--white);
+    padding: 80px 0 0;
+  }
+  .footer .top-row {
+    display: grid;
+    grid-template-columns: 298px 1fr 298px 298px;
+    gap: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .footer .top-cta h3 {
+    margin: 0 0 24px;
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--white);
+    line-height: 1.2;
+  }
+  .footer .top-cta .btn {
+    background: var(--white);
+    color: #000;
+  }
+  .footer .top-cta .btn:hover { opacity: 0.85; }
+  .footer .col-links {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .footer .col-links a {
+    font-size: 18px;
+    color: var(--white);
+  }
+  .footer .col-links a:hover { opacity: 0.7; }
+
+  .footer .big-row {
+    position: relative;
+    padding: 40px 0 24px;
+  }
+  .footer .vertical {
+    position: absolute;
+    left: 32px;
+    top: 75px;
+    transform: rotate(-90deg);
+    transform-origin: top left;
+    font-family: "Geist Mono", monospace;
+    font-size: 14px;
+    color: var(--white);
+  }
+  .footer .h-studio-big {
+    margin: 0 0 0 60px;
+    font-size: 290px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: -0.06em;
+    line-height: 0.85;
+  }
+  .footer .legal {
+    display: flex;
+    justify-content: flex-end;
+    gap: 32px;
+    padding: 24px 0 32px;
+    margin-left: 60px;
+  }
+  .footer .legal a {
+    font-size: 12px;
+    color: var(--white);
+    opacity: 0.8;
+  }
+
+  /* ============ Responsive ============ */
+  @media (max-width: 1100px) {
+    .hero-title { font-size: 130px; }
+    .work-head h2 { font-size: 140px; }
+    .testimonials .big { font-size: 140px; }
+    .footer .h-studio-big { font-size: 180px; }
+    .statement-text h2 { font-size: 72px; }
+    .services-title .num, .services-title h2 { font-size: 72px; }
+    .about-grid { grid-template-columns: 1fr; }
+    .about-img { width: 100%; }
+    .about-img img { width: 100%; height: auto; margin-left: 0; }
+    .service-row { grid-template-columns: 1fr; gap: 16px; }
+    .service-img { width: 100%; height: auto; }
+    .work-grid { grid-template-columns: 1fr; }
+    .work-col.right { padding-top: 0; }
+    .project-img-wrap.tall, .project-img-wrap.short { height: auto; aspect-ratio: 676/744; }
+    .testimonials { height: auto; }
+    .testimonials .big { margin-top: 0; }
+    .testimonial { position: relative; max-width: 100%; left: auto !important; top: auto !important; width: 100% !important; margin-bottom: 32px; }
+    .news-inner { grid-template-columns: 1fr; gap: 32px; }
+    .news-title { transform: none; width: auto; margin-top: 0; }
+    .news-list { grid-template-columns: 1fr; }
+    .news-item img, .news-item.middle img { height: auto; aspect-ratio: 353/469; }
+    .footer .top-row { grid-template-columns: 1fr; }
+    .footer .vertical { display: none; }
+    .footer .h-studio-big { margin-left: 0; }
+    .nav-links { display: none; }
+  }
+</style>
 </head>
 <body>
-    <h1>HStudio Portfolio</h1>
+
+<!-- HERO -->
+<section class="section hero">
+  <div class="hero-bg"></div>
+  <div class="hero-fade"></div>
+
+  <header class="nav">
+    <div class="inner nav-row">
+      <a href="#" class="logo">H.Studio</a>
+      <nav class="nav-links">
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#projects">Projects</a>
+        <a href="#news">News</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a href="#contact" class="btn">Let&rsquo;s talk</a>
+    </div>
+  </header>
+
+  <div class="inner hero-content">
+    <p class="mono hero-tag">[ Hello i&rsquo;m ]</p>
+    <h1 class="hero-title">Harvey&nbsp;&nbsp;&nbsp;Specter</h1>
+    <div class="hero-foot">
+      <div class="hero-foot-inner">
+        <p>H.Studio is a full-service creative studio creating beautiful digital experience</p>
+        <a href="#contact" class="btn">Let&rsquo;s talk</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATEMENT -->
+<section class="section statement">
+  <div class="inner">
+    <div class="statement-top">
+      <span class="mono">[ 8+ years in industry ]</span>
+    </div>
+    <div class="statement-text">
+      <div class="row">
+        <h2>A creative director&nbsp;&nbsp;&nbsp;/</h2>
+        <span class="num">001</span>
+      </div>
+      <div class="row"><h2>Photographer</h2></div>
+      <div class="row"><h2>Born &amp; raised</h2></div>
+      <div class="row"><h2>on the south side</h2></div>
+      <div class="row">
+        <h2>of chicago.</h2>
+        <span class="tag-end">[ creative freelancer ]</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section about" id="about">
+  <div class="inner">
+    <p class="mono about-tag">[ About ]</p>
+    <div class="about-grid">
+      <div class="about-cta">
+        <div class="about-cta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 17 17 7M9 7h8v8" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <p>Discover how my creativity transforms ideas into impactful digital experiences &mdash; schedule a call with me to get started.</p>
+          <a href="#contact" class="btn">Let&rsquo;s talk</a>
+        </div>
+      </div>
+
+      <div class="about-text">
+        <p>Placeholder paragraph one. This is where you introduce yourself &mdash; your background, your passion for your craft, and what drives you creatively. Two to three sentences work best here.</p>
+        <p>Placeholder paragraph two. Here you can describe your technical approach, how you collaborate with clients, or what sets your work apart from others in your field.</p>
+      </div>
+
+      <div class="about-img">
+        <span class="mono num">002</span>
+        <img src="images/about.jpg" alt="About portrait" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BANNER -->
+<div class="section banner" role="img" aria-label="Banner photograph"></div>
+
+<!-- SERVICES -->
+<section class="section services" id="services">
+  <div class="inner">
+    <p class="mono services-tag">[ services ]</p>
+    <div class="services-title">
+      <span class="num">[4]</span>
+      <h2>Deliverables</h2>
+    </div>
+
+    <div class="service">
+      <div class="mono service-num">[ 1 ]</div>
+      <div class="service-row">
+        <div class="service-name">Brand Discovery</div>
+        <p class="service-desc">Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.</p>
+        <img class="service-img" src="images/service-1.jpg" alt="Brand Discovery" />
+      </div>
+    </div>
+    <div class="service">
+      <div class="mono service-num">[ 2 ]</div>
+      <div class="service-row">
+        <div class="service-name">Web design &amp; Dev</div>
+        <p class="service-desc">Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.</p>
+        <img class="service-img" src="images/service-2.jpg" alt="Web design and development" />
+      </div>
+    </div>
+    <div class="service">
+      <div class="mono service-num">[ 3 ]</div>
+      <div class="service-row">
+        <div class="service-name">Marketing</div>
+        <p class="service-desc">Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.</p>
+        <img class="service-img" src="images/service-3.jpg" alt="Marketing" />
+      </div>
+    </div>
+    <div class="service">
+      <div class="mono service-num">[ 4 ]</div>
+      <div class="service-row">
+        <div class="service-name">Photography</div>
+        <p class="service-desc">Placeholder description of this service. Explain the value you provide and the outcomes clients can expect. Keep it to two or three sentences.</p>
+        <img class="service-img" src="images/service-4.jpg" alt="Photography" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SELECTED WORK -->
+<section class="section work" id="projects">
+  <div class="inner">
+    <div class="work-head">
+      <h2>Selected<br />Work<span class="num">004</span></h2>
+      <span class="vertical-tag">[ portfolio ]</span>
+    </div>
+
+    <div class="work-grid">
+      <div class="work-col">
+        <article class="project">
+          <div class="project-img-wrap tall">
+            <img src="images/project.jpg" alt="Surfers paradise" />
+            <div class="project-tags">
+              <span class="project-tag">Social Media</span>
+              <span class="project-tag">Photography</span>
+            </div>
+          </div>
+          <div class="project-foot">
+            <h3 class="project-name">Surfers paradise</h3>
+            <span class="project-arrow">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-img-wrap short">
+            <img src="images/project.jpg" alt="Cyberpunk caffe" />
+            <div class="project-tags">
+              <span class="project-tag">Social Media</span>
+              <span class="project-tag">Photography</span>
+            </div>
+          </div>
+          <div class="project-foot">
+            <h3 class="project-name">Cyberpunk caffe</h3>
+            <span class="project-arrow">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </article>
+
+        <div class="work-cta">
+          <div class="about-cta-arrow">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 17 17 7M9 7h8v8" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <p>Discover how my creativity transforms ideas into impactful digital experiences &mdash; schedule a call with me to get started.</p>
+            <a href="#contact" class="btn">Let&rsquo;s talk</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-col right">
+        <article class="project">
+          <div class="project-img-wrap short">
+            <img src="images/project.jpg" alt="Agency 976" />
+            <div class="project-tags">
+              <span class="project-tag">Social Media</span>
+              <span class="project-tag">Photography</span>
+            </div>
+          </div>
+          <div class="project-foot">
+            <h3 class="project-name">Agency 976</h3>
+            <span class="project-arrow">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-img-wrap tall">
+            <img src="images/project.jpg" alt="Minimal Playground" />
+            <div class="project-tags">
+              <span class="project-tag">Social Media</span>
+              <span class="project-tag">Photography</span>
+            </div>
+          </div>
+          <div class="project-foot">
+            <h3 class="project-name">Minimal Playground</h3>
+            <span class="project-arrow">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section testimonials">
+  <div class="inner">
+    <h2 class="big">Testimonials</h2>
+
+    <div class="testimonial t-1">
+      <div class="stars stars-row">
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+      </div>
+      <p>Professional, precise, and incredibly fast at handling complex product visualizations and templates.</p>
+      <span class="name">Lukas Weber</span>
+    </div>
+
+    <div class="testimonial t-2">
+      <div class="stars stars-row">
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+      </div>
+      <p>A brilliant creative partner who transformed our vision into a unique, high-impact brand identity. Their ability to craft everything from custom mascots to polished logos is truly impressive.</p>
+      <span class="name">Marko Stojkovi&cacute;</span>
+    </div>
+
+    <div class="testimonial t-3">
+      <div class="stars stars-row">
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+      </div>
+      <p>A strategic partner who balances stunning aesthetics with high-performance UX for complex platforms. They don&rsquo;t just make things look good; they solve business problems through visual clarity.</p>
+      <span class="name">Sarah Jenkins</span>
+    </div>
+
+    <div class="testimonial t-4">
+      <div class="stars stars-row">
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+        <svg viewBox="0 0 24 24" fill="#000"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+      </div>
+      <p>An incredibly versatile designer who delivers consistent quality across a wide range of styles and formats.</p>
+      <span class="name">Sofia Mart&iacute;nez</span>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS -->
+<section class="section news" id="news">
+  <div class="inner news-inner">
+    <h2 class="news-title">Keep up with my latest<br />news &amp; achievements</h2>
+
+    <div class="news-list">
+      <article class="news-item">
+        <img src="images/news-1.jpg" alt="News article 1" />
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <a href="#" class="news-more">
+          Read more
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </article>
+
+      <article class="news-item middle">
+        <img src="images/news-2.jpg" alt="News article 2" />
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <a href="#" class="news-more">
+          Read more
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </article>
+
+      <article class="news-item">
+        <img src="images/news-3.jpg" alt="News article 3" />
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <a href="#" class="news-more">
+          Read more
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 13 13 3M5 3h8v8" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="section footer" id="contact">
+  <div class="inner">
+    <div class="top-row">
+      <div class="top-cta">
+        <h3>Have a project in mind?</h3>
+        <a href="mailto:hello@hstudio.com" class="btn">Let&rsquo;s talk</a>
+      </div>
+      <div></div>
+      <div class="col-links">
+        <a href="#">Facebook</a>
+        <a href="#">Instagram</a>
+      </div>
+      <div class="col-links">
+        <a href="#">x.com</a>
+        <a href="#">Linkedin</a>
+      </div>
+    </div>
+
+    <div class="big-row">
+      <span class="vertical">[ Coded By Claude ]</span>
+      <div class="h-studio-big">H.Studio</div>
+    </div>
+
+    <div class="legal">
+      <a href="#">licences</a>
+      <a href="#">Privacy policy</a>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
