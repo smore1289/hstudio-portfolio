@@ -40,6 +40,26 @@
   .section { width: 100%; max-width: var(--maxw); margin: 0 auto; }
   .inner { width: 100%; max-width: var(--inner); margin: 0 auto; padding: 0 var(--pad); }
 
+  /* Scroll reveal — sections fade-in + slide-up as they enter the viewport */
+  .section:not(.hero) {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .section.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .section:not(.hero) {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
   /* Pill button */
   .btn {
     display: inline-flex;
@@ -55,9 +75,68 @@
     line-height: 1;
     border: none;
     cursor: pointer;
-    transition: opacity .2s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.4s ease;
+    will-change: transform;
   }
-  .btn:hover { opacity: 0.85; }
+  .btn:hover {
+    transform: scale(1.07);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+  .btn:active {
+    transform: scale(0.94);
+    transition-duration: 0.15s;
+  }
+  .footer .top-cta .btn:hover {
+    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.25);
+  }
+
+  /* Letter-pop hover effect */
+  .btn__stack {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    height: 1em;
+    line-height: 1;
+  }
+  .btn__top,
+  .btn__bot {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+  }
+  .btn__top {
+    transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .btn__bot {
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .btn__bot > span {
+    display: inline-block;
+    transform: translateY(110%);
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition-delay: calc(var(--i, 0) * 28ms);
+  }
+  .btn:hover .btn__top {
+    transform: translateY(-115%);
+  }
+  .btn:hover .btn__bot > span {
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn,
+    .btn__top,
+    .btn__bot > span { transition: none !important; }
+    .btn:hover { transform: none; opacity: 0.85; }
+  }
 
   /* ============ HERO / NAV ============ */
   .hero {
@@ -65,11 +144,16 @@
     height: 847px;
     overflow: hidden;
     background: #ddd;
+    isolation: isolate;
   }
   .hero-bg {
     position: absolute;
-    inset: 0;
+    top: -10%;
+    left: 0;
+    right: 0;
+    height: 120%;
     background: url('images/hero.jpg') center/cover no-repeat;
+    will-change: transform;
   }
   .hero-fade {
     position: absolute;
@@ -106,7 +190,6 @@
 
   .hero-content {
     position: relative;
-    z-index: 4;
     margin-top: 90px;
   }
   .hero-tag {
@@ -121,6 +204,25 @@
     color: var(--white);
     letter-spacing: -0.04em;
     word-spacing: 0.6em;
+    mix-blend-mode: overlay;
+  }
+  .hero-title .letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.45em);
+    animation: hero-letter-in 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 45ms + 220ms);
+    will-change: opacity, transform;
+  }
+  @keyframes hero-letter-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-title .letter {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
   }
   .hero-foot {
     display: flex;
@@ -237,7 +339,17 @@
   .banner {
     width: 100%;
     height: 900px;
+    position: relative;
+    overflow: hidden;
+  }
+  .banner-bg {
+    position: absolute;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    height: 120%;
     background: url('images/banner.jpg') center/cover no-repeat;
+    will-change: transform;
   }
 
   /* ============ SERVICES (dark) ============ */
@@ -710,7 +822,7 @@
 
 <!-- HERO -->
 <section class="section hero">
-  <div class="hero-bg"></div>
+  <div class="hero-bg" data-parallax="80"></div>
   <div class="hero-fade"></div>
 
   <header class="nav">
@@ -792,7 +904,9 @@
 </section>
 
 <!-- BANNER -->
-<div class="section banner" role="img" aria-label="Banner photograph"></div>
+<div class="section banner" role="img" aria-label="Banner photograph">
+  <div class="banner-bg" data-parallax="80"></div>
+</div>
 
 <!-- SERVICES -->
 <section class="section services" id="services">
@@ -1224,7 +1338,10 @@
 
     if (s.primaryCta) {
       document.querySelectorAll('.btn').forEach((btn) => {
-        if (s.primaryCta.label) btn.textContent = s.primaryCta.label;
+        if (s.primaryCta.label) {
+          btn.textContent = s.primaryCta.label;
+          delete btn.dataset.enhanced;
+        }
         if (s.primaryCta.href) btn.setAttribute('href', s.primaryCta.href);
       });
     }
@@ -1259,7 +1376,10 @@
     setText('.hero-tag', h.heroEyebrow);
     if (h.heroTitle) {
       const t = document.querySelector('.hero-title');
-      if (t) t.textContent = h.heroTitle;
+      if (t) {
+        t.textContent = h.heroTitle;
+        wrapHeroTitle();
+      }
     }
     if (h.heroIntro) setText('.hero-foot-inner p', h.heroIntro);
     setBgImage('.hero-bg', h.heroImageRef);
@@ -1305,7 +1425,7 @@
   }
 
   function hydrateBanner(h) {
-    setBgImage('.banner', h.bannerImageRef);
+    setBgImage('.banner-bg', h.bannerImageRef);
   }
 
   function hydrateServices(h) {
@@ -1576,6 +1696,103 @@
     ));
   }
 
+  function initParallax() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const layers = Array.from(document.querySelectorAll('[data-parallax]'));
+    if (!layers.length) return;
+
+    let ticking = false;
+
+    function update() {
+      const vh = window.innerHeight;
+      layers.forEach((layer) => {
+        const container = layer.parentElement;
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+
+        // progress = -1 (section fully above) → 0 (center on viewport mid) → +1 (section fully below)
+        const center = rect.top + rect.height / 2;
+        const progressDenom = vh / 2 + rect.height / 2 || 1;
+        const progress = (center - vh / 2) / progressDenom;
+        const clamped = Math.max(-1, Math.min(1, progress));
+
+        const range = parseFloat(layer.dataset.parallax) || 60;
+        const translate = clamped * range;
+        layer.style.transform = `translate3d(0, ${translate.toFixed(2)}px, 0)`;
+      });
+      ticking = false;
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onScroll, {passive: true});
+    update();
+  }
+
+  function initScrollReveals() {
+    const targets = document.querySelectorAll('.section:not(.hero)');
+    if (!targets.length) return;
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || !('IntersectionObserver' in window)) {
+      targets.forEach((el) => el.classList.add('in-view'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: '0px 0px -8% 0px',
+      },
+    );
+
+    targets.forEach((el) => observer.observe(el));
+  }
+
+  function wrapHeroTitle() {
+    const el = document.querySelector('.hero-title');
+    if (!el) return;
+    const text = (el.textContent || '').trim();
+    if (!text) return;
+    if (el.dataset.wrappedText === text) return;
+    el.innerHTML = [...text]
+      .map((c, i) => {
+        const isSpace = c === ' ' || c === ' ';
+        const inner = isSpace ? '&nbsp;' : escapeHtml(c);
+        return `<span class="letter" style="--i:${i}">${inner}</span>`;
+      })
+      .join('');
+    el.dataset.wrappedText = text;
+  }
+
+  function enhanceButtons() {
+    document.querySelectorAll('.btn').forEach((btn) => {
+      if (btn.dataset.enhanced === '1') return;
+      const raw = btn.textContent.trim();
+      if (!raw) return;
+      const letters = [...raw]
+        .map((c, i) => `<span style="--i:${i}">${c === ' ' ? '&nbsp;' : escapeHtml(c)}</span>`)
+        .join('');
+      btn.innerHTML = `<span class="btn__stack" aria-hidden="false"><span class="btn__top">${escapeHtml(raw)}</span><span class="btn__bot" aria-hidden="true">${letters}</span></span>`;
+      btn.dataset.enhanced = '1';
+    });
+  }
+
   async function load() {
     try {
       const url = `${API_URL}?query=${encodeURIComponent(QUERY)}`;
@@ -1599,13 +1816,18 @@
         hydrateTestimonials(data.home);
         hydrateNews(data.home);
       }
+      enhanceButtons();
     } catch (err) {
       console.warn('[sanity] hydration error, using static content', err);
     }
   }
 
   function boot() {
+    wrapHeroTitle();
     initTestimonialsCarousel();
+    enhanceButtons();
+    initParallax();
+    initScrollReveals();
     load();
   }
 
